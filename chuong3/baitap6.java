@@ -14,13 +14,13 @@ import java.util.Scanner;
 
 public class baitap6 {
 	
-	static String byteToString(byte[] ip_byte) {
-		int[] ip_int = new int[ip_byte.length];
-		for (int i = 0; i < 4; i++)
-			ip_int[i] = ip_byte[i] & 0xFF; //dùng AND (toán tử bit) 
-		String ip_string = ip_int[0] + "." + ip_int[1] + "." + ip_int[2] + "." + ip_int[3];
-		return ip_string;
-	}
+//	static String byteToString(byte[] ip_byte) {
+//		int[] ip_int = new int[ip_byte.length];
+//		for (int i = 0; i < 4; i++)
+//			ip_int[i] = ip_byte[i] & 0xFF; //dùng AND (toán tử bit) 
+//		String ip_string = ip_int[0] + "." + ip_int[1] + "." + ip_int[2] + "." + ip_int[3];
+//		return ip_string;
+//	}
 	
 	static void redirect(String input) {
 		try {
@@ -43,10 +43,9 @@ public class baitap6 {
 		URL url = new URL(inputUrl);
 		String hostName = url.getHost();
 		InetAddress addr = InetAddress.getByName(hostName);
-		byte[] ipByte = addr.getAddress();
 		
 		//get ip
-		String ipString = byteToString(ipByte);
+		String ipString = addr.getHostAddress();
 		
 		//get date access
 		URLConnection urlCon = url.openConnection();
