@@ -24,20 +24,6 @@ public class client {
 
 	}
 
-	public void SendFrames() {
-		while ((current_ack <= left) && (current_ack >= right)) {
-			pkt = current_ack + "|" + data;
-			try {
-				out.writeObject(pkt);
-				System.out.println("Sent  " + pkt);
-
-				out.flush();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
 	public void ReceiveFrames() {
 		new Thread(new Runnable() {
 			@Override
