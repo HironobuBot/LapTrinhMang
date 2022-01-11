@@ -13,12 +13,13 @@ public class client {
 	ObjectInputStream in;
 
 	int SWS = 1;
-	int right = SWS, left = 0, Number_of_pkt = 15;
+	int right = SWS, left = 0, Number_of_pkt = 5;
 	String pkt;
 	String ack_received;
 	int current_ack = 0, last_ack = -1;
 	char data = ' ';
 	int timeout;
+	boolean complete = false;
 
 	client() {
 
@@ -31,6 +32,8 @@ public class client {
 				while (current_ack <= Number_of_pkt) {
 					try {
 						ack_received = (String) in.readObject();
+						if (Integer.parseInt(ack_received) == Number_of_pkt)
+							complete = true;
 						last_ack = current_ack;
 						current_ack++;
 						left++;
@@ -50,7 +53,7 @@ public class client {
 		out = new ObjectOutputStream(sender.getOutputStream());
 		in = new ObjectInputStream(sender.getInputStream());
 
-		while (true) {
+		while (!complete) {
 			try {
 				System.out.println("START");
 				ReceiveFrames();
@@ -62,18 +65,21 @@ public class client {
 					}
 					pkt = current_ack + "|" + data;
 					try {
-						out.writeObject(pkt);
-						System.out.println("Sent  " + pkt);
+						if (!complete) {
+							out.writeObject(pkt);
+							System.out.println("Sent  " + pkt);
 
-						out.flush();
+							out.flush();
+						}
+
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
 			} catch (Exception e) {
 			}
-			break;
 		}
+
 		System.out.println("\nSending complete.");
 
 		in.close();

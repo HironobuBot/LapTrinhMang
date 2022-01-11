@@ -20,7 +20,7 @@ public class server {
 	int RWS = 1;
 	int left = 0;
 	int right = left + RWS;
-	int Number_of_pkt = 15;
+	int Number_of_pkt = 5;
 	int current_pkt = 0;
 
 	Random rand = new Random();
@@ -53,7 +53,6 @@ public class server {
 					current_pkt++;
 					left++;
 					right++;
-
 					out.writeObject(ack);
 					out.flush();
 
