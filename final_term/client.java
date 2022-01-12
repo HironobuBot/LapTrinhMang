@@ -49,11 +49,11 @@ public class client {
 				ack_received = (String) in.readObject();
 
 				if (Integer.parseInt(ack_received) == current_ack) {
-					timer.timer_stop();
 					current_ack++;
 					left++;
 					right++;
 				}
+				timer.timer_stop();
 
 				System.out.println("ack received : " + ack_received);
 				TimeUnit.SECONDS.sleep(5);
