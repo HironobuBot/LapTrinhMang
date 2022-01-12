@@ -16,35 +16,13 @@ public class client {
 	int right = SWS, left = 0, Number_of_pkt = 5;
 	String pkt;
 	String ack_received;
-	int current_ack = 0, last_ack = -1;
-	char data = ' ';
-	int timeout;
-	boolean complete = false;
+	static int current_ack = 0;
+	static char data = ' ';
+	int timeout = 10;
+	static boolean resend = false;
 
 	client() {
 
-	}
-
-	public void ReceiveFrames() {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (current_ack <= Number_of_pkt) {
-					try {
-						ack_received = (String) in.readObject();
-						if (Integer.parseInt(ack_received) == Number_of_pkt)
-							complete = true;
-						last_ack = current_ack;
-						current_ack++;
-						left++;
-						right++;
-						System.out.println("ack received : " + ack_received);
-					} catch (ClassNotFoundException | IOException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		}).start();
 	}
 
 	public void run() throws IOException {
@@ -53,29 +31,32 @@ public class client {
 		out = new ObjectOutputStream(sender.getOutputStream());
 		in = new ObjectInputStream(sender.getInputStream());
 
-		while (!complete) {
+		while ((current_ack >= left) && (current_ack < right) && (current_ack <= Number_of_pkt)) {
 			try {
-				System.out.println("START");
-				ReceiveFrames();
-				while ((current_ack >= left) && (current_ack < right) && (current_ack <= Number_of_pkt)) {
-					if (current_ack == last_ack) {
-						TimeUnit.SECONDS.sleep(7);
-					} else {
-						TimeUnit.SECONDS.sleep(2);
-					}
-					pkt = current_ack + "|" + data;
-					try {
-						if (!complete) {
-							out.writeObject(pkt);
-							System.out.println("Sent  " + pkt);
 
-							out.flush();
-						}
+				pkt = current_ack + "|" + data;
 
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+				out.writeObject(pkt);
+				System.out.println("Sent  " + pkt);
+
+				out.flush();
+
+				Timer timer = new Timer(timeout, out);
+				timer.start();
+
+				System.out.println("Waiting for ack " + pkt);
+
+				ack_received = (String) in.readObject();
+
+				if (Integer.parseInt(ack_received) == current_ack) {
+					timer.timer_stop();
+					current_ack++;
+					left++;
+					right++;
 				}
+
+				System.out.println("ack received : " + ack_received);
+				TimeUnit.SECONDS.sleep(5);
 			} catch (Exception e) {
 			}
 		}
@@ -92,5 +73,41 @@ public class client {
 	public static void main(String as[]) throws IOException {
 		client c = new client();
 		c.run();
+	}
+}
+
+class Timer extends Thread {
+	private int start, delay;
+	private boolean stop;
+	private ObjectOutputStream out;
+
+	public Timer(int delay, ObjectOutputStream out) {
+		this.start = 0;
+		this.delay = delay;
+		this.stop = false;
+		this.out = out;
+	}
+
+	public void timer_stop() {
+		this.stop = true;
+	}
+
+	@Override
+	public void run() {
+		int i = start;
+		while (!stop) {
+			try {
+				TimeUnit.SECONDS.sleep(1);
+				i++;
+				if ((i % delay) == 0) {
+					String pkt = client.current_ack + "|" + client.data;
+					out.writeObject(pkt);
+					System.out.println(delay + " seconds later...");
+					System.out.println("Resending  " + pkt);
+				}
+			} catch (InterruptedException | IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
